@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # ROS libraries
 import rospy
@@ -11,7 +11,8 @@ import math
 from math import sin, cos, pi
 
 # Pre-defined global variables
-
+_model_index = 0       # New line to be added
+_model_found = False   # New line to be added
 _odometry = Pose2D()
 _truth_pose = Pose2D()
 _cmd_vel = Twist()
