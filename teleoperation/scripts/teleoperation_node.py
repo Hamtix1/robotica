@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # ROS libraries
 import rospy
@@ -15,7 +15,9 @@ _pose = Vector3()
 _cmd_vel = Twist()
 _cam_pan = Float64()
 _cam_tilt = Float64()
-
+linear = 0
+angular = 0
+cameraPan = 0
 ##############################################################
 ##############################################################
 # Practical session P1.1
@@ -39,20 +41,84 @@ def process_data():
     # If click in the interface, _pose.x = vertical coordinate ;  _pose.y = horizontal coordinate. Otherwise, they all equal to -1.0
     # If click out of the interface, or the mouse leaves the interface, _pose.x = _pose.y = -1.0
 
-    global _qwe, _asd, _pose, _cmd_vel
+    global _qwe, _asd, _pose, _cmd_vel, linear, angular, cameraPan
+    maxLinear = 3
+    maxAngular = 6
+    sizeVentana = 300 #Tamaño de la interface cuadrada
+    maxCoord=sizeVentana/2
+    #Movimiento del robot por interface padMouse
+    # print(_pose.y) 
+    if _pose.x != -1 and _pose.y != -1:              
+        xCursor = -(_pose.y/maxCoord-1)
+        yCursor = -(_pose.x/maxCoord-1)
+        linear = yCursor*maxLinear
+        angular = xCursor*maxAngular
+    else:
+        linear = 0
+        angular = 0
+        
 
 
+    #Movimiento de la cámara por el teclado
+    if _qwe.x:
+        cameraPan = -0.785
+    elif _qwe.y:
+        cameraPan = 0
+    elif _qwe.z:
+        cameraPan = 0.785
+    
+    #Control de magnitud de velocidad linear y angular por teclado
+    if _asd.x:
+        if linear >= 0:
+            linear = linear - 0.1*maxLinear
+            if linear < 0:
+                linear = 0
+        if angular >= 0:
+            angular = angular - 0.1*maxAngular
+            if angular < 0:
+                angular = 0
+        if linear < 0:
+            linear = linear + 0.1*maxLinear
+            if linear > 0:
+                linear = 0
+        if angular < 0:
+            angular = angular + 0.1*maxAngular
+            if angular > 0:
+                angular = 0
+    
+    if _asd.z:
+        if linear != 0:
+            if linear >= 0:
+                linear = linear + 0.1*maxLinear
+                if linear > maxLinear:
+                    linear = maxLinear
+            if angular >= 0:
+                angular = angular + 0.1*maxAngular
+                if angular > maxAngular:
+                    angular = maxAngular
+            if linear < 0:
+                linear = linear - 0.1*maxLinear
+                if linear < -maxLinear:
+                    linear = -maxLinear
+            if angular < 0:
+                angular = angular - 0.1*maxAngular
+                if angular < -maxAngular:
+                    angular = -maxAngular
+    if _asd.y:
+        linear = 0
+        angular = 0
 
+    
 
     # Outputs: replace the value 0.0 with your output
     # linear velocity, [-3.0,3.0] (+-1.5 m/s)
-    _cmd_vel.linear.x = 0.0
+    _cmd_vel.linear.x = linear
     # angular velocity, [-6.0,6.0] (+-3.0 rad/s)
-    _cmd_vel.angular.z = 0.0
+    _cmd_vel.angular.z = angular
     # camera pan, [-1.57,1.57] (rad)
-    _cam_pan.data = 0.0
+    _cam_pan.data = cameraPan
     # camera tilt, [-1.57,1.57] (rad)
-    _cam_tilt.data = 0.0
+    _cam_tilt.data = 0.218
 
     # Cleaning keyboard input data after being processed, if you want
     # to keep it, you must store it in a global variable.
